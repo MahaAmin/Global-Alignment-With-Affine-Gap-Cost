@@ -29,6 +29,7 @@ BLOSUM80 = {
            '*':{'A':-6,'R':-6,'N':-6,'D':-6,'C':-6,'Q':-6,'E':-6,'G':-6,'H':-6,'I':-6,'L':-6,'K':-6,'M':-6,'F':-6,'P':-6,'S':-6,'T':-6,'W':-6,'Y':-6,'V':-6,'B':-6,'J':-6,'Z':-6,'X':-6,'*':1},
 }
 
+
 def initializeMatchMatrix(matrix, row, col):
     matrix[0][0] = 0
     for i in range(1, row):
@@ -37,28 +38,30 @@ def initializeMatchMatrix(matrix, row, col):
         matrix_match[0][j] = - math.inf
 
 
-def initializeStringMatrix(matrix, row, col, open_penalty, extende_penalty, director):
+def initializeStringMatrix(matrix, row, col, open_penalty, extend_penalty, director):
     if director == "IX":
         for i in range(row):
-            matrix[i][0] = open_penalty + (extende_penalty * i)
+            matrix[i][0] = open_penalty + (extend_penalty * i)
         for j in range(1, col):
             matrix[0][j] = - math.inf
     elif director == "IY":
         for j in range(col):
-            matrix[0][j] = open_penalty + (extende_penalty * j)
+            matrix[0][j] = open_penalty + (extend_penalty * j)
         for i in range(1, row):
             matrix[i][0] = - math.inf
+
 
 def fillingMatrixDNA(match_matrix, IX_matrix, IY_matrix, open_penalty, extend_penalty, s1, s2, row, col):
     for i in range(1, row):
         for j in range(1, col):
             if s1[j-1] == s2[i-1]:
-                score = 2
+                score = 1
             else:
                 score = -1
-            match_matrix[i][j] = max(match_matrix[i-1][j-1]+ score, IX_matrix[i-1][j-1]+score, IY_matrix[i-1][j-1]+score)
+            match_matrix[i][j] = max(match_matrix[i-1][j-1] + score, IX_matrix[i-1][j-1]+score, IY_matrix[i-1][j-1]+score)
             IX_matrix[i][j] = max(match_matrix[i-1][j]+open_penalty+extend_penalty, IX_matrix[i-1][j]+extend_penalty)
             IY_matrix[i][j] = max(match_matrix[i][j-1]+open_penalty+extend_penalty, IY_matrix[i][j-1]+extend_penalty)
+
 
 def fillingMatrixProtein(match_matrix, IX_matrix, IY_matrix, open_penalty, extend_penalty, s1, s2, row, col):
     for i in range(1,row):
@@ -70,6 +73,89 @@ def fillingMatrixProtein(match_matrix, IX_matrix, IY_matrix, open_penalty, exten
             IY_matrix[i][j] = max(match_matrix[i][j - 1] + open_penalty + extend_penalty,
                                   IY_matrix[i][j - 1] + extend_penalty)
 
+
+def traceback(match_matrix, IX_matrix, IY_matrix, open_penalty, extend_penalty, s1, s2, row, col):
+    GAFirst = ""
+    GASecond = ""
+    GAMatch = ""
+    i = row - 1
+    j = col - 1
+    if match_matrix[i][j] > IX_matrix[i][j] and match_matrix[i][j] > IY_matrix[i][j]:
+        current_matrix = 'm'
+        print("Optimal Score = " + str(match_matrix[i][j]))
+
+    elif IX_matrix[i][j] > match_matrix[i][j] and IX_matrix[i][j] > IY_matrix[i][j]:
+        current_matrix = 'x'
+        print("Optimal Score = " + str(IX_matrix[i][j]))
+
+    else:
+        current_matrix = 'y'
+        print("Optimal Score = " + str(IY_matrix[i][j]))
+
+    while i > 0 or j > 0:
+        if current_matrix == 'm':
+
+            GAFirst += s1[j - 1]
+            GASecond += s2[i - 1]
+            if s1[j-1] == s2[i-1]:
+                GAMatch += "|"
+            else:
+                GAMatch += " "
+
+            if s2[i-1] == s1[j-1]:
+                penalty = 1
+            else:
+                penalty = -1
+
+            if match_matrix[i-1][j-1]+penalty == match_matrix[i][j]:
+                i -= 1
+                j -= 1
+                current_matrix = 'm'
+            elif IX_matrix[i-1][j-1]+penalty == match_matrix[i][j]:
+                i -= 1
+                j -= 1
+                current_matrix = 'x'
+            elif IY_matrix[i-1][j-1]+penalty == match_matrix[i][j]:
+                i -= 1
+                j -= 1
+                current_matrix = 'y'
+
+        elif current_matrix == 'x':
+            GAFirst += "-"
+            GASecond += s2[i - 1]
+            GAMatch += " "
+
+            if IX_matrix[i-1][j]+extend_penalty == IX_matrix[i][j]:
+                i -= 1
+                current_matrix = 'x'
+            elif match_matrix[i-1][j]+open_penalty+extend_penalty == IX_matrix[i][j]:
+                i -= 1
+                current_matrix = 'm'
+
+        elif current_matrix == 'y':
+            GAFirst += s1[j - 1]
+            GASecond += "-"
+            GAMatch += " "
+
+            if IY_matrix[i][j-1]+extend_penalty == IY_matrix[i][j]:
+                j -= 1
+                current_matrix = 'y'
+            elif match_matrix[i][j-1]+open_penalty+extend_penalty == IY_matrix[i][j]:
+                j -= 1
+                current_matrix = 'm'
+    GAFirst = GAFirst[::-1]
+    GAMatch = GAMatch[::-1]
+    GASecond = GASecond[::-1]
+
+    print("Optimal Alignment:")
+    print(GAFirst)
+    print(GAMatch)
+    print(GASecond)
+
+
+print("----------------------Global Alignment With Affine Gap Cost----------------------")
+sys.stdout.write("Choose type of sequence Protein/DNA (p/d): ")
+material = input()
 print("Enter 1st sequence: ")
 str1 = input()
 
@@ -96,24 +182,10 @@ initializeMatchMatrix(matrix_match, row, col)
 initializeStringMatrix(IX_matrix, row, col, open_gap_penalty, extend_gap_penalty, "IX")
 initializeStringMatrix(IY_matrix, row, col, open_gap_penalty, extend_gap_penalty, "IY")
 
-# fillingMatrixDNA(matrix_match, IX_matrix, IY_matrix, open_gap_penalty, extend_gap_penalty, str1, str2, row, col)
-
-fillingMatrixProtein(matrix_match, IX_matrix, IY_matrix, open_gap_penalty, extend_gap_penalty, str1, str2, row, col)
-
-for i in range(row):
-    for j in range(col):
-        sys.stdout.write(str(IY_matrix[i][j]))
-        sys.stdout.write(" ")
-    print()
+if material == 'p':
+    fillingMatrixProtein(matrix_match, IX_matrix, IY_matrix, open_gap_penalty, extend_gap_penalty, str1, str2, row, col)
+elif material == 'd':
+    fillingMatrixDNA(matrix_match, IX_matrix, IY_matrix, open_gap_penalty, extend_gap_penalty, str1, str2, row, col)
 
 
-
-
-
-
-
-
-
-
-
-
+traceback(matrix_match, IX_matrix, IY_matrix, open_gap_penalty, extend_gap_penalty, str1, str2, row, col)
