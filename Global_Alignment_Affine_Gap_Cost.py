@@ -74,7 +74,7 @@ def fillingMatrixProtein(match_matrix, IX_matrix, IY_matrix, open_penalty, exten
                                   IY_matrix[i][j - 1] + extend_penalty)
 
 
-def traceback(match_matrix, IX_matrix, IY_matrix, open_penalty, extend_penalty, s1, s2, row, col):
+def traceback(match_matrix, IX_matrix, IY_matrix, open_penalty, extend_penalty, s1, s2, row, col, material):
     GAFirst = ""
     GASecond = ""
     GAMatch = ""
@@ -103,9 +103,15 @@ def traceback(match_matrix, IX_matrix, IY_matrix, open_penalty, extend_penalty, 
                 GAMatch += " "
 
             if s2[i-1] == s1[j-1]:
-                penalty = 1
+                if material == 'd':
+                    penalty = 1
+                elif material == 'p':
+                    penalty = BLOSUM80[s1[j-1]][s2[i-1]]
             else:
-                penalty = -1
+                if material == 'd':
+                    penalty = -1
+                elif material == 'p':
+                    penalty = BLOSUM80[s1[j-1]][s2[i-1]]
 
             if match_matrix[i-1][j-1]+penalty == match_matrix[i][j]:
                 i -= 1
@@ -188,4 +194,4 @@ elif material == 'd':
     fillingMatrixDNA(matrix_match, IX_matrix, IY_matrix, open_gap_penalty, extend_gap_penalty, str1, str2, row, col)
 
 
-traceback(matrix_match, IX_matrix, IY_matrix, open_gap_penalty, extend_gap_penalty, str1, str2, row, col)
+traceback(matrix_match, IX_matrix, IY_matrix, open_gap_penalty, extend_gap_penalty, str1, str2, row, col, material)
