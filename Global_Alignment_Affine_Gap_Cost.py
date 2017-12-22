@@ -55,7 +55,7 @@ def fillingMatrixDNA(match_matrix, IX_matrix, IY_matrix, open_penalty, extend_pe
     for i in range(1, row):
         for j in range(1, col):
             if s1[j-1] == s2[i-1]:
-                score = 1
+                score = 2
             else:
                 score = -1
             match_matrix[i][j] = max(match_matrix[i-1][j-1] + score, IX_matrix[i-1][j-1]+score, IY_matrix[i-1][j-1]+score)
@@ -82,15 +82,18 @@ def traceback(match_matrix, IX_matrix, IY_matrix, open_penalty, extend_penalty, 
     j = col - 1
     if match_matrix[i][j] > IX_matrix[i][j] and match_matrix[i][j] > IY_matrix[i][j]:
         current_matrix = 'm'
-        print("Optimal Score = " + str(match_matrix[i][j]))
+        optimalScore = match_matrix[i][j]
+        print("Optimal Score = " + str(optimalScore))
 
     elif IX_matrix[i][j] > match_matrix[i][j] and IX_matrix[i][j] > IY_matrix[i][j]:
         current_matrix = 'x'
-        print("Optimal Score = " + str(IX_matrix[i][j]))
+        optimalScore = IX_matrix[i][j]
+        print("Optimal Score = " + str(optimalScore))
 
     else:
         current_matrix = 'y'
-        print("Optimal Score = " + str(IY_matrix[i][j]))
+        optimalScore = IY_matrix[i][j]
+        print("Optimal Score = " + str(optimalScore))
 
     while i > 0 or j > 0:
         if current_matrix == 'm':
@@ -104,7 +107,7 @@ def traceback(match_matrix, IX_matrix, IY_matrix, open_penalty, extend_penalty, 
 
             if s2[i-1] == s1[j-1]:
                 if material == 'd':
-                    penalty = 1
+                    penalty = 2
                 elif material == 'p':
                     penalty = BLOSUM80[s1[j-1]][s2[i-1]]
             else:
@@ -157,6 +160,16 @@ def traceback(match_matrix, IX_matrix, IY_matrix, open_penalty, extend_penalty, 
     print(GAFirst)
     print(GAMatch)
     print(GASecond)
+
+    file = open("OUTPUT", "w")
+    file.write("Optimal Score = " + str(optimalScore) + "\n")
+    file.write("Optimal Alignment: " + "\n")
+    file.write(GAFirst + "\n")
+    file.write(GAMatch + "\n")
+    file.write(GASecond + "\n")
+    file.close()
+
+    print("OUTPUT file is created.")
 
 
 print("----------------------Global Alignment With Affine Gap Cost----------------------")
