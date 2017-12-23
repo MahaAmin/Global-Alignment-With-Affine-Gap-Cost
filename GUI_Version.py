@@ -177,26 +177,245 @@ def globalAlignment():
     GAMatch = GAMatch[::-1]
     GASecond = GASecond[::-1]
 
+    print("Optimal Alignment:")
     print(GAFirst)
     print(GAMatch)
     print(GASecond)
 
-    align_output = GAFirst + "\n" + GAMatch + "\n" + GASecond
+    # =============================================
 
-    output.config(text=align_output)
+    GAFirst1 = ""
+    GASecond1 = ""
+    GAMatch1 = ""
+    i = row - 1
+    j = col - 1
 
-    optimal_score.config(text=optimalScore)
+    if IX_matrix[i][j] > matrix_match[i][j] and IX_matrix[i][j] > IY_matrix[i][j]:
+        current_matrix = 'x'
+        optimalScore = IX_matrix[i][j]
+        # print("Optimal Score = " + str(optimalScore))
 
-    # Writing the output to text file
+    elif matrix_match[i][j] > IX_matrix[i][j] and matrix_match[i][j] > IY_matrix[i][j]:
+        current_matrix = 'm'
+        optimalScore = matrix_match[i][j]
+        # print("Optimal Score = " + str(optimalScore))
+
+    else:
+        current_matrix = 'y'
+        optimalScore = IY_matrix[i][j]
+        # print("Optimal Score = " + str(optimalScore))
+
+    while i > 0 or j > 0:
+        if current_matrix == 'm':
+
+            GAFirst1 += str1[j - 1]
+            GASecond1 += str2[i - 1]
+            if str1[j - 1] == str2[i - 1]:
+                GAMatch1 += "|"
+            else:
+                GAMatch1 += " "
+
+            if str2[i - 1] == str1[j - 1]:
+                if material == 'd':
+                    penalty = 2
+                elif material == 'p':
+                    penalty = BLOSUM80[str1[j - 1]][str2[i - 1]]
+            else:
+                if material == 'd':
+                    penalty = -1
+                elif material == 'p':
+                    penalty = BLOSUM80[str1[j - 1]][str2[i - 1]]
+
+            if IX_matrix[i - 1][j - 1] + penalty == matrix_match[i][j]:
+                i -= 1
+                j -= 1
+                current_matrix = 'x'
+
+            elif matrix_match[i - 1][j - 1] + penalty == matrix_match[i][j]:
+                i -= 1
+                j -= 1
+                current_matrix = 'm'
+
+            elif IY_matrix[i - 1][j - 1] + penalty == matrix_match[i][j]:
+                i -= 1
+                j -= 1
+                current_matrix = 'y'
+
+        elif current_matrix == 'x':
+            GAFirst1 += "-"
+            GASecond1 += str2[i - 1]
+            GAMatch1 += " "
+
+            if matrix_match[i - 1][j] + open_penalty + extension_penalty == IX_matrix[i][j]:
+                i -= 1
+                current_matrix = 'm'
+
+            elif IX_matrix[i - 1][j] + extension_penalty == IX_matrix[i][j]:
+                i -= 1
+                current_matrix = 'x'
+
+
+        elif current_matrix == 'y':
+            GAFirst1 += str1[j - 1]
+            GASecond1 += "-"
+            GAMatch1 += " "
+
+            if matrix_match[i][j - 1] + open_penalty + extension_penalty == IY_matrix[i][j]:
+                j -= 1
+                current_matrix = 'm'
+
+            elif IY_matrix[i][j - 1] + extension_penalty == IY_matrix[i][j]:
+                j -= 1
+                current_matrix = 'y'
+
+    GAFirst1 = GAFirst1[::-1]
+    GAMatch1 = GAMatch1[::-1]
+    GASecond1 = GASecond1[::-1]
+
+    # print("Optimal Alignment:")
+    # print(GAFirst1)
+    # print(GAMatch1)
+    # print(GASecond1)
+    # ---------------------------------------------------------------
+    GAFirst2 = ""
+    GASecond2 = ""
+    GAMatch2 = ""
+    i = row - 1
+    j = col - 1
+
+    if IY_matrix[i][j] > matrix_match[i][j] and IY_matrix[i][j] > IX_matrix[i][j]:
+        current_matrix = 'y'
+        optimalScore = IY_matrix[i][j]
+        # print("Optimal Score = " + str(optimalScore))
+
+    elif IX_matrix[i][j] > matrix_match[i][j] and IX_matrix[i][j] > IY_matrix[i][j]:
+        current_matrix = 'x'
+        optimalScore = IX_matrix[i][j]
+        # print("Optimal Score = " + str(optimalScore))
+
+    elif matrix_match[i][j] > IX_matrix[i][j] and matrix_match[i][j] > IY_matrix[i][j]:
+        current_matrix = 'm'
+        optimalScore = matrix_match[i][j]
+        # print("Optimal Score = " + str(optimalScore))
+
+    while i > 0 or j > 0:
+        if current_matrix == 'm':
+
+            GAFirst2 += str1[j - 1]
+            GASecond2 += str2[i - 1]
+            if str1[j - 1] == str2[i - 1]:
+                GAMatch2 += "|"
+            else:
+                GAMatch2 += " "
+
+            if str2[i - 1] == str1[j - 1]:
+                if material == 'd':
+                    penalty = 2
+                elif material == 'p':
+                    penalty = BLOSUM80[str1[j - 1]][str2[i - 1]]
+            else:
+                if material == 'd':
+                    penalty = -1
+                elif material == 'p':
+                    penalty = BLOSUM80[str1[j - 1]][str2[i - 1]]
+
+            if IY_matrix[i - 1][j - 1] + penalty == matrix_match[i][j]:
+                i -= 1
+                j -= 1
+                current_matrix = 'y'
+
+            elif IX_matrix[i - 1][j - 1] + penalty == matrix_match[i][j]:
+                i -= 1
+                j -= 1
+                current_matrix = 'x'
+
+            elif matrix_match[i - 1][j - 1] + penalty == matrix_match[i][j]:
+                i -= 1
+                j -= 1
+                current_matrix = 'm'
+
+
+
+        elif current_matrix == 'x':
+            GAFirst2 += "-"
+            GASecond2 += str2[i - 1]
+            GAMatch2 += " "
+
+            if IX_matrix[i - 1][j] + extension_penalty == IX_matrix[i][j]:
+                i -= 1
+                current_matrix = 'x'
+
+            elif matrix_match[i - 1][j] + open_penalty + extension_penalty == IX_matrix[i][j]:
+                i -= 1
+                current_matrix = 'm'
+
+
+
+
+        elif current_matrix == 'y':
+            GAFirst2 += str1[j - 1]
+            GASecond2 += "-"
+            GAMatch2 += " "
+
+            if IY_matrix[i][j - 1] + extension_penalty == IY_matrix[i][j]:
+                j -= 1
+                current_matrix = 'y'
+
+            elif matrix_match[i][j - 1] + open_penalty + extension_penalty == IY_matrix[i][j]:
+                j -= 1
+                current_matrix = 'm'
+
+    GAFirst2 = GAFirst2[::-1]
+    GAMatch2 = GAMatch2[::-1]
+    GASecond2 = GASecond2[::-1]
+
+    # print("Optimal Alignment:")
+    # print(GAFirst2)
+    # print(GAMatch2)
+    # print(GASecond2)
     file = open("OUTPUT", "w")
     file.write("Optimal Score = " + str(optimalScore) + "\n")
     file.write("Optimal Alignment: " + "\n")
     file.write(GAFirst + "\n")
     file.write(GAMatch + "\n")
     file.write(GASecond + "\n")
-    file.close()
 
+    GA1 = False
+    GA2 = False
+
+    if GAFirst != GAFirst1 or GASecond != GASecond1:
+        GA1 = True
+        print("Optimal Alignment:")
+        print(GAFirst1)
+        print(GAMatch1)
+        print(GASecond1)
+        file.write("Optimal Alignment: " + "\n")
+        file.write(GAFirst1 + "\n")
+        file.write(GAMatch1 + "\n")
+        file.write(GASecond1 + "\n")
+        file.close()
+
+    if (GAFirst != GAFirst2 and GAFirst1 != GAFirst2) or (GASecond != GASecond2 and GASecond1 != GASecond2):
+        GA2 = True
+        print("Optimal Alignment:")
+        print(GAFirst2)
+        print(GAMatch2)
+        print(GASecond2)
+
+        file.write(GAFirst2 + "\n")
+        file.write(GAMatch2 + "\n")
+        file.write(GASecond2 + "\n")
+    file.close()
     print("OUTPUT file is created.")
+
+    if GA1 == True and GA2 == True:
+        output.config(text=GAFirst + "\n" + GAMatch + "\n" + GASecond + "\n" + GAFirst1 + "\n" + GAMatch1 + "\n" + GASecond1 + "\n" + GAFirst2 + "\n" + GAMatch2 + "\n" + GASecond2 + "\n")
+    elif GA1 == True and GA2 == False:
+        output.config(text=GAFirst + "\n" + GAMatch + "\n" + GASecond + "\n" + GAFirst1 + "\n" + GAMatch1 + "\n" + GASecond1 + "\n")
+    elif GA2 == True and GA1 == False:
+        output.config(text=GAFirst + "\n" + GAMatch + "\n" + GASecond + "\n" + GAFirst2 + "\n" + GAMatch2 + "\n" + GASecond2 + "\n")
+
+    optimal_score.config(text=optimalScore)
     status.config(text="OUTPUT file is created....")
 
 
